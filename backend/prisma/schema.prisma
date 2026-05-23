@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  username    String   @unique @db.VarChar(50)
+  displayName String?  @map("display_name") @db.VarChar(100)
+  avatarUrl   String?  @map("avatar_url")
+  email       String?  @unique @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  mixtapes           Mixtape[]
+  comments           Comment[]
+  likes              Like[]
+  mixtapeCollaborators MixtapeCollaborator[]
+
+  @@map("users")
+}
+
+model Mixtape {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String   @db.VarChar(200)
+  description     String?
+  year            Int?
+  mood            String?  @db.VarChar(50)
+  shellTheme      String?  @default("neon-blue") @map("shell_theme") @db.VarChar(50)
+  coverUrl        String?  @map("cover_url")
+  authorId        String   @map("author_id") @db.Uuid
+  isCollaborative Boolean  @default(false) @map("is_collaborative")
+  likesCount      Int      @default(0) @map("likes_count")
+  commentsCount   Int      @default(0) @map("comments_count")
+  remixCount      Int      @default(0) @map("remix_count")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  author             User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tracks             Track[]
+  comments           Comment[]
+  likes              Like[]
+  mixtapeCollaborators MixtapeCollaborator[]
+
+  @@index([authorId], map: "idx_mixtapes_author")
+  @@index([mood], map: "idx_mixtapes_mood")
+  @@index([year], map: "idx_mixtapes_year")
+  @@index([createdAt], map: "idx_mixtapes_created")
+  @@map("mixtapes")
+}
+
+model Track {
+  id         String   @id @default(uuid()) @db.Uuid
+  mixtapeId  String   @map("mixtape_id") @db.Uuid
+  title      String   @db.VarChar(200)
+  artist     String   @db.VarChar(200)
+  album      String?  @db.VarChar(200)
+  duration   Int      @default(180)
+  audioUrl   String?  @map("audio_url")
+  coverUrl   String?  @map("cover_url")
+  side       String   @db.Char(1) // 'A' or 'B'
+  trackOrder Int      @map("track_order")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  mixtape Mixtape @relation(fields: [mixtapeId], references: [id], onDelete: Cascade)
+
+  @@index([mixtapeId], map: "idx_tracks_mixtape")
+  @@map("tracks")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String
+  authorId  String   @map("author_id") @db.Uuid
+  mixtapeId String   @map("mixtape_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  mixtape Mixtape @relation(fields: [mixtapeId], references: [id], onDelete: Cascade)
+
+  @@index([mixtapeId], map: "idx_comments_mixtape")
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  mixtapeId String   @map("mixtape_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mixtape Mixtape @relation(fields: [mixtapeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mixtapeId])
+  @@index([mixtapeId], map: "idx_likes_mixtape")
+  @@map("likes")
+}
+
+model MixtapeCollaborator {
+  mixtapeId String   @map("mixtape_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      String?  @default("editor") @db.VarChar(50)
+  joinedAt  DateTime @default(now()) @map("joined_at") @db.Timestamptz
+
+  mixtape Mixtape @relation(fields: [mixtapeId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([mixtapeId, userId])
+  @@map("mixtape_collaborators")
+}
