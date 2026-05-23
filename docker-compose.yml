@@ -22,7 +22,7 @@ services:
     container_name: retrowave-backend
     restart: unless-stopped
     ports:
-      - '3001:3001'
+      - '3016:3001'
     env_file:
       - .env
     environment:
