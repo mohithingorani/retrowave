@@ -72,7 +72,7 @@ This starts the database containers, pushes the Prisma schema, and seeds the dat
 npm run dev
 ```
 
-Starts everything — PostgreSQL, Redis, the Fastify backend on port 3001, and the Next.js dev server on port 3000. The Next.js dev server automatically proxies `/api/*` requests to the backend. Open http://localhost:3000.
+Starts everything — PostgreSQL, Redis, the Fastify backend on port 3001, and the Next.js dev server on port 3000. The Next.js dev server automatically proxies `/api/*` requests to the backend. Open http://localhost:3015.
 
 If you want finer control:
 
@@ -95,7 +95,7 @@ Pulls a fresh track listing from Internet Archive and rebuilds the mixtapes. Use
 make prod
 ```
 
-Builds and starts everything with Docker Compose. The nginx container on port 80 acts as the entry point — it proxies static assets and pages to the Next.js server, and API/WebSocket traffic to the Fastify backend. You can swap in your own nginx by removing the nginx service from docker-compose.yml and pointing your config at `localhost:3000`.
+Builds and starts everything with Docker Compose. The nginx container on port 80 acts as the entry point — it proxies static assets and pages to the Next.js server, and API/WebSocket traffic to the Fastify backend. You can swap in your own nginx by removing the nginx service from docker-compose.yml and pointing your config at `localhost:3015`.
 
 ### If you want to use your own nginx
 
@@ -107,7 +107,7 @@ server {
     server_name your.domain;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3015;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -116,7 +116,7 @@ server {
     }
 
     location /ws {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3015;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -126,7 +126,7 @@ server {
 }
 ```
 
-The frontend proxies `/api/*` internally, so you just forward everything to port 3000.
+The frontend proxies `/api/*` internally, so you just forward everything to port 3015.
 
 ## How audio works
 

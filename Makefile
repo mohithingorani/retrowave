@@ -11,7 +11,7 @@ dev-backend:
 	cd backend && DATABASE_URL="postgresql://retrowave:retrowave_pass@localhost:5432/retrowave" npx tsx src/index.ts
 
 dev-frontend:
-	cd frontend && NODE_ENV=development npx next dev
+	cd frontend && NODE_ENV=development npx next dev --port 3015
 
 build:
 	cd frontend && npm run build
